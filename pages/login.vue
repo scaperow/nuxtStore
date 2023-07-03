@@ -23,7 +23,7 @@
         </div>
     </div>
 </template>
-<script  lang="ts">
+<script setup>
 import { onMounted, ref } from "vue";
 const counter = ref(0);
 const bindTimeout = ref(false);
@@ -36,40 +36,33 @@ const id = () => {
     })
     return uuid
 }
+const scene = id();
 
-export default {
-    data() {
-        return {
-            scene: id()
-        }
-    },
-    mounted() {
-        const timer = setInterval(async () => {
-            // 获取openid
+onMounted(() => {
+    const timer = setInterval(async () => {
+        // 获取openid
 
-            await this.$axios.get("/user/session?scene=" + this.scene)
-                .then((res: any) => {
-                    counter.value++;
-                    if (counter.value === 60) {
-                        clearTimeout(timer);
-                        bindTimeout.value = true;
-                    }
-                    if (res.data.openid !== "") {
-                        clearTimeout(timer);
-                        let { nickname, avatar, openid } = res.data;
-                        // that.$store.dispatch("user/changeName", nickname);
-                        // that.$store.dispatch("user/changeAvatar", avatar);
-                        // that.$store.dispatch("user/changeOpenid", openid);
-                        // that.$router.push("/index");
-                    }
-                })
-                .catch(() => {
+        await this.$axios.get("/user/session?scene=" + this.scene)
+            .then((res) => {
+                counter.value++;
+                if (counter.value === 60) {
                     clearTimeout(timer);
-                });
-        }, 3000);
-    },
-
-}
+                    bindTimeout.value = true;
+                }
+                if (res.data.openid !== "") {
+                    clearTimeout(timer);
+                    let { nickname, avatar, openid } = res.data;
+                    // that.$store.dispatch("user/changeName", nickname);
+                    // that.$store.dispatch("user/changeAvatar", avatar);
+                    // that.$store.dispatch("user/changeOpenid", openid);
+                    // that.$router.push("/index");
+                }
+            })
+            .catch(() => {
+                clearTimeout(timer);
+            });
+    }, 3000);
+});
 
 </script>
 <style></style>
