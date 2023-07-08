@@ -19,8 +19,10 @@ export default {
   css: ['~/static/main.css'],
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
-  plugins: [],
-
+  plugins: [
+    // 其他插件
+    '~/plugins/axios.js' // 添加自定义的 axios 插件
+  ],
   // Auto import components: https://go.nuxtjs.dev/config-components
   components: true,
 
@@ -68,7 +70,6 @@ export default {
         autoprefixer: {},
       },
     },
-
   },
 
   serverMiddleware: [

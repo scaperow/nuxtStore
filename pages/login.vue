@@ -23,7 +23,7 @@
         </div>
     </div>
 </template>
-<script  lang="ts">
+<script >
 import { onMounted, ref } from "vue";
 const counter = ref(0);
 const bindTimeout = ref(false);
@@ -37,6 +37,7 @@ const id = () => {
     return uuid
 }
 
+
 export default {
     data() {
         return {
@@ -44,29 +45,39 @@ export default {
         }
     },
     mounted() {
-        const timer = setInterval(async () => {
-            // 获取openid
+        const session = localStorage.getItem('session');
+        if (session) {
+            this.$router.push('/');
+        } else {
+            const timer = setInterval(async () => {
+                // 获取openid
 
-            await this.$axios.get("/user/session?scene=" + this.scene)
-                .then((res: any) => {
+                try {
+                    const { data } = await this.$axios.get("/user/session?scene=" + this.scene);
                     counter.value++;
                     if (counter.value === 60) {
-                        clearTimeout(timer);
+                        clearInterval(timer);
                         bindTimeout.value = true;
                     }
-                    if (res.data.openid !== "") {
-                        clearTimeout(timer);
-                        let { nickname, avatar, openid } = res.data;
+                    let { code, nickname, avatar, openid, token } = data;
+
+                    localStorage.setItem('session', JSON.stringify(data));
+                    localStorage.setItem('token', token);
+
+                    if (token) {
+                        clearInterval(timer);
+                        this.$router.push('index');
+
                         // that.$store.dispatch("user/changeName", nickname);
                         // that.$store.dispatch("user/changeAvatar", avatar);
                         // that.$store.dispatch("user/changeOpenid", openid);
                         // that.$router.push("/index");
                     }
-                })
-                .catch(() => {
-                    clearTimeout(timer);
-                });
-        }, 3000);
+                } catch (error) {
+                    // clearTimeout(timer);
+                }
+            }, 5000);
+        }
     },
 
 }
