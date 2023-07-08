@@ -72,17 +72,17 @@ export default {
     },
   },
 
-  serverMiddleware: [
-    { path: '/api', handler: '~/api/orders.ts' },
-    async (req, res, next) => {
-      // 执行其他自定义的设置操作
-      const AV = require('leancloud-storage');
-      const appId = 'tHpsOodTG4tgJqbEWIvHOyBk-gzGzoHsz';
-      const appKey = 'IDjAYSEOB1rXIpR0ndU8nn2V';
-      AV.init({ appId, appKey, serverURL: 'https://thpsoodt.lc-cn-n1-shared.com' });
+  // serverMiddleware: [
+  //   { path: '/api', handler: '~/api/orders.ts' },
+  //   async (req, res, next) => {
+  //     // 执行其他自定义的设置操作
+  //     const AV = require('leancloud-storage');
+  //     const appId = 'tHpsOodTG4tgJqbEWIvHOyBk-gzGzoHsz';
+  //     const appKey = 'IDjAYSEOB1rXIpR0ndU8nn2V';
+  //     AV.init({ appId, appKey, serverURL: 'https://thpsoodt.lc-cn-n1-shared.com' });
 
-      // 调用下一个中间件或处理程序
-      next();
-    }
-  ],
+  //     // 调用下一个中间件或处理程序
+  //     next();
+  //   }
+  // ],
 }

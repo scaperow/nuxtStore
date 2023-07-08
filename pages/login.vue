@@ -23,7 +23,7 @@
         </div>
     </div>
 </template>
-<script >
+<script setup>
 import { onMounted, ref } from "vue";
 const counter = ref(0);
 const bindTimeout = ref(false);
@@ -36,51 +36,33 @@ const id = () => {
     })
     return uuid
 }
+const scene = id();
 
+onMounted(() => {
+    const timer = setInterval(async () => {
+        // 获取openid
 
-export default {
-    data() {
-        return {
-            scene: id()
-        }
-    },
-    mounted() {
-        const session = localStorage.getItem('session');
-        if (session) {
-            this.$router.push('/');
-        } else {
-            const timer = setInterval(async () => {
-                // 获取openid
-
-                try {
-                    const { data } = await this.$axios.get("/user/session?scene=" + this.scene);
-                    counter.value++;
-                    if (counter.value === 60) {
-                        clearInterval(timer);
-                        bindTimeout.value = true;
-                    }
-                    let { code, nickname, avatar, openid, token } = data;
-
-                    localStorage.setItem('session', JSON.stringify(data));
-                    localStorage.setItem('token', token);
-
-                    if (token) {
-                        clearInterval(timer);
-                        this.$router.push('index');
-
-                        // that.$store.dispatch("user/changeName", nickname);
-                        // that.$store.dispatch("user/changeAvatar", avatar);
-                        // that.$store.dispatch("user/changeOpenid", openid);
-                        // that.$router.push("/index");
-                    }
-                } catch (error) {
-                    // clearTimeout(timer);
+        await this.$axios.get("/user/session?scene=" + this.scene)
+            .then((res) => {
+                counter.value++;
+                if (counter.value === 60) {
+                    clearTimeout(timer);
+                    bindTimeout.value = true;
                 }
-            }, 5000);
-        }
-    },
-
-}
+                if (res.data.openid !== "") {
+                    clearTimeout(timer);
+                    let { nickname, avatar, openid } = res.data;
+                    // that.$store.dispatch("user/changeName", nickname);
+                    // that.$store.dispatch("user/changeAvatar", avatar);
+                    // that.$store.dispatch("user/changeOpenid", openid);
+                    // that.$router.push("/index");
+                }
+            })
+            .catch(() => {
+                clearTimeout(timer);
+            });
+    }, 3000);
+});
 
 </script>
 <style></style>
