@@ -24,9 +24,9 @@ export default function ({ $axios, redirect }) {
 
     // 错误处理
     $axios.onError((error) => {
-        const code = parseInt(error.response && error.response.status);
-        if (code === 404) {
-            redirect('/404');
-        }
+        // const code = parseInt(error.response && error.response.status);
+        // if (code === 404) {
+        //     redirect('/404');
+        // }
     });
 }

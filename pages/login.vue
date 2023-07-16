@@ -11,7 +11,7 @@
             <div class="mb-2 text-center">欢迎使用 MirrorGPT</div>
             <div class="mb-4 text-center">请使用微信扫码登录</div>
             <div class="rounded-3xl mb-4">
-                <img class="w-32" :src="`https://chat-api.scaperow.com/user/code?scene=${scene}`"></img>
+                <img class="w-32" :src="loginQR" />
             </div>
             <div class="flex flex-row gap-3"><button class="btn relative btn-primary" as="button">
                     <div class="flex w-full gap-2 items-center justify-center">登录</div>
@@ -24,11 +24,15 @@
     </div>
 </template>
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, ref, computed } from "vue";
+import { useContext, useRouter } from "@nuxtjs/composition-api";
+
+const { push } = useRouter();
+const { $axios, $config: { axios: { baseURL } } } = useContext();
 const counter = ref(0);
 const bindTimeout = ref(false);
 const id = () => {
-    let d = new Date().getTime()
+    let d = new Date().getTime();
     let uuid = 'xxxxxxxx-xxxx-4xxx-yxxx'.replace(/[xy]/g, function (c) {
         let r = (d + Math.random() * 16) % 16 | 0
         d = Math.floor(d / 16)
@@ -37,32 +41,35 @@ const id = () => {
     return uuid
 }
 const scene = id();
+const loginQR = computed(() => `${baseURL}/user/code?scene=${scene}`);
 
 onMounted(() => {
     const timer = setInterval(async () => {
+        if (++counter.value >= 60) {
+            clearTimeout(timer);
+            bindTimeout.value = true;
+        }
+
         // 获取openid
 
-        await this.$axios.get("/user/session?scene=" + this.scene)
-            .then((res) => {
-                counter.value++;
-                if (counter.value === 60) {
-                    clearTimeout(timer);
-                    bindTimeout.value = true;
-                }
-                if (res.data.openid !== "") {
-                    clearTimeout(timer);
-                    let { nickname, avatar, openid } = res.data;
-                    // that.$store.dispatch("user/changeName", nickname);
-                    // that.$store.dispatch("user/changeAvatar", avatar);
-                    // that.$store.dispatch("user/changeOpenid", openid);
-                    // that.$router.push("/index");
-                }
-            })
-            .catch(() => {
-                clearTimeout(timer);
-            });
-    }, 3000);
+        try {
+            const { data: { code, token, user } } = await $axios.get("/user/session?scene=" + scene);
+            if (code === 200) {
+                localStorage.setItem('token', token);
+                localStorage.setItem('user', JSON.stringify(user));
+                // that.$store.dispatch("user/changeName", nickname);
+                // that.$store.dispatch("user/changeAvatar", avatar);
+                // that.$store.dispatch("user/changeOpenid", openid);
+                // that.$router.push("/index");
+                push('/index');
+            } else {
+                console.log(bindTimeout);
+            }
+        }
+        catch (error) {
+            // console.error(error);
+        }
+    }, 5000);
 });
-
 </script>
 <style></style>

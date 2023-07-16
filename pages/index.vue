@@ -15,21 +15,25 @@
   </div>
 </template>
 
-<script lang="js" setup>
+<script  setup>
+import { onMounted } from 'vue';
+import { useContext, useRouter } from "@nuxtjs/composition-api";
+
+const { $axios } = useContext();
+const router = useRouter();
 
 const checkSession = async () => {
-  await this.$axios.get("/user/session?scene=" + this.scene);
-  setTimeout(async () => {
-    await checkSession();
-  }, 1000 * 60 * 1200);
-}
+  try {
+    await $axios.get("/user/checkSession");
+
+    setTimeout(async () => await checkSession(), 1000 * 60 * 1200);
+  } catch (error) {
+    router.push('/login');
+  }
+};
 
 onMounted(() => {
-  try {
-    checkSession();
-  } catch (error) {
-    this.$router.push('login');
-  }
+  checkSession();
 });
 
 </script>
