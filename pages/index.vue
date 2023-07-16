@@ -15,8 +15,7 @@
   </div>
 </template>
 
-<script>
-import { defineComponent } from 'vue';
+<script lang="js" setup>
 
 const checkSession = async () => {
   await this.$axios.get("/user/session?scene=" + this.scene);
@@ -25,19 +24,12 @@ const checkSession = async () => {
   }, 1000 * 60 * 1200);
 }
 
-export default defineComponent({
-  data() {
-    return {
-     
-    }
-  },
-
-  async mounted() {
-    try {
-      checkSession();
-    } catch (error) {
-      this.$router.push('login');
-    }
-  },
+onMounted(() => {
+  try {
+    checkSession();
+  } catch (error) {
+    this.$router.push('login');
+  }
 });
+
 </script>

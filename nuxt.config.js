@@ -49,7 +49,8 @@ export default {
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
   axios: {
     // Workaround to avoid enforcing hard-coded localhost:3000: https://github.com/nuxt-community/axios-module/issues/308
-    baseURL: 'https://chat-api.scaperow.com',
+    // baseURL: 'https://chat-api.scaperow.com',
+    baseURL: 'https://localhost:8888',
   },
 
   // PWA module configuration: https://go.nuxtjs.dev/pwa
