@@ -1,3 +1,5 @@
+import { session, token } from "../pages/store";
+import { pick } from "lodash";
 export default function ({ $axios, redirect }) {
     // 设置默认请求头
     $axios.setHeader('Content-Type', 'application/json');
@@ -16,7 +18,20 @@ export default function ({ $axios, redirect }) {
         if (response.code === 401) {
             //login
         } else {
+            const { license, licenseExpireAt, token } = pick(response.data, 'license', 'licenseExpireAt', 'token');
 
+            if (license !== undefined) {
+                session.license = license;
+            }
+
+            if (licenseExpireAt !== undefined) {
+                session.licenseExpireAt = licenseExpireAt;
+            }
+
+            if (token !== undefined) {
+                session.token = token;
+                localStorage.setItem('token', token);
+            }
         }
 
         return response;
