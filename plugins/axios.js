@@ -39,9 +39,12 @@ export default function ({ $axios, redirect }) {
 
     // 错误处理
     $axios.onError((error) => {
-        // const code = parseInt(error.response && error.response.status);
-        // if (code === 404) {
-        //     redirect('/404');
-        // }
+        console.log('Response error:');
+        const code = parseInt(error.response && error.response.status);
+        if (code === 401) {
+            session.token = session.user = null;
+
+            // router.go('/login');
+        }
     });
 }

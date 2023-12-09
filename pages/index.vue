@@ -1,9 +1,10 @@
 <template>
   <div class="container">
-    {{ licenseExpireAt && licenseExpireAt.format('YYYY-MM-DD') }}
-    <button class="btn" @click="openOrderModal()">open modal</button>
+    <div class="absolute top-0 bottom-0 left-0 right-0 z-50">
+      <login v-if="!session.user && !loading"></login>
+    </div>
     <input type="checkbox" :checked="productModalOpened" class="modal-toggle">
-    <div  id="productModal" class="modal">
+    <div id="productModal" class="modal">
       <form method="dialog" class="modal-box pb-0">
         <button class="btn absolute right-2 top-2  btn-link z-10 text-black" size="sm" @click="openOrderModal()">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -52,19 +53,16 @@
                   已支付？点击此处刷新
                 </button>
               </div>
-              <div class="card-actions justify-between mt-8">
+              <div class="card-actions justify-end mt-8">
                 <!-- if there is a button in form, it will close the modal -->
-                <button class="btn" @click="
+                <!-- <button class="btn" @click="
                   currentProduct = null;
                 order = null;
                 payCode = null;
                 ">
                   返回
-                </button>
-                <button class="btn btn-primary" @click="
-                  currentProduct = null;
-                order = null;
-                payCode = null;">取消</button>
+                </button> -->
+                <button class="btn btn-primary" @click="cancelPay()">取消</button>
               </div>
             </div>
           </template>
@@ -94,18 +92,16 @@
 
               <div class="card-actions justify-end mt-8">
                 <!-- if there is a button in form, it will close the modal -->
-                <button class="btn btn-primary" @click=" currentProduct = null;
-                order = null;
-                payCode = null;">取消</button>
+                <button class="btn btn-primary" @click="openOrderModal()">取消</button>
               </div>
             </div>
           </template>
         </div>
       </form>
-    </div >
+    </div>
 
     <input type="checkbox" :checked="orderModalOpened" class="modal-toggle">
-    <div  id="orderModal" class="modal ">
+    <div id="orderModal" class="modal ">
       <form method="dialog" class="modal-box">
         <div class="card">
           <div class="card-title">套餐过期</div>
@@ -120,7 +116,7 @@
           </div>
         </div>
       </form>
-    </div >
+    </div>
   </div>
 </template>
 
@@ -130,6 +126,7 @@ import { useContext, useRouter } from "@nuxtjs/composition-api";
 import QRCode from "qrcode";
 import { session, licenseExpireAt, sharedProducts, currentLicense } from "./store";
 import dayjs from "dayjs";
+import login from "./login.vue";
 const currentProduct = ref(null);
 const { $axios } = useContext();
 let checkSessionTimer = null;
@@ -137,10 +134,11 @@ let checkOrderTimer = null;
 const payCode = ref("");
 const payStatus = ref(1);
 const order = ref({});
-const router = useRouter();
+const loading = ref(true);
 
 const productModalOpened = ref(false);
-const orderModalOpened = ref(true);
+const orderModalOpened = ref(false);
+const showLoginModal = ref(false);
 
 const openOrderModal = () => {
   orderModalOpened.value = true;
@@ -157,19 +155,20 @@ const closeAllModal = () => {
   orderModalOpened.value = false;
 }
 
-const checkSession = async () => {
+const validate = async () => {
   try {
     //block on plugins/axios.js if session was expired
-
     if (checkSessionTimer) {
       clearTimeout(checkSessionTimer);
     }
 
-    await $axios.get("/user/checkSession");
-    checkSessionTimer = setTimeout(async () => await checkSession(), 1000 * 60 * 1200);
+    await $axios.get("/user/validate");
+    checkSessionTimer = setTimeout(async () => await validate(), 1000 * 60 * 1200);
   } catch (error) {
     console.error(error);
-    router.push("/login");
+    session.token = null;
+  } finally {
+    loading.value = false;
   }
 };
 const buy = async (product) => {
@@ -209,19 +208,30 @@ const checkOrderStatus = async () => {
   }
 }
 
-watch(session, (newSession, oldSession) => {
-  if (newSession.license === 0) {
-    orderModalOpened.value = true;
-  }
+const cancelPay = () => {
+  currentProduct.value = null;
+  order.value = null;
+  payCode.value = null;
+  clearTimeout(checkOrderTimer);
+  checkOrderTimer = null;
+}
 
-  if (newSession.token !== oldSession.token) {
-    checkSession();
+watch(session, (newSession, oldSession) => {
+
+  if (oldSession) {
+    if (newSession.license === 0) {
+      // orderModalOpened.value = true;
+      openOrderModal();
+    }
+
+    if (newSession.token !== oldSession.token) {
+      validate();
+    }
   }
 })
 
 watchEffect(() => {
   if (currentProduct && currentProduct.value && order.value) {
-
     checkOrderStatus();
   } else if (checkOrderTimer) {
     clearTimeout(checkOrderTimer);
@@ -237,6 +247,6 @@ onUnmounted(() => {
 })
 
 onMounted(() => {
-  checkSession();
+  validate();
 });
 </script>

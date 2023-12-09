@@ -1,5 +1,17 @@
 
 export default {
+  webpack: {
+    filenames: {
+      chunk: ({ isDev }) => 'server.js'
+    },
+    filenames: 'main.js'
+  },
+  ssr: false,
+  filenames: {
+    chunk: ({ isDev }) => 'server.js'
+  },
+  builder: 'webpack',
+
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
     title: 'nuxt-store',

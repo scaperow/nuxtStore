@@ -1,12 +1,15 @@
 import dayjs from 'dayjs'
 import { Observable } from 'rxjs'
 import { computed, reactive, ref } from 'vue'
+import { get } from 'lodash'
+
 export const session = reactive({
-  user: null,
+  user: JSON.parse(localStorage.user || '{}') || null,
   license: null,
   licenseExpireAt: null,
   loading: false,
-  token: '',
+  token: localStorage.token,
+  scene: localStorage.scene
 })
 
 export const sharedProducts = ref([
